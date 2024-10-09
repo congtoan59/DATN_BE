@@ -1,5 +1,6 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
+
 const { genneralAccessToken , genneralRefreshToken } = require("./JwtServices");
 const createUser = (newUser) => {
   return new Promise(async (resolve, reject) => {
@@ -150,46 +151,40 @@ const getAllUser = () => {
       }
     });
   };
-// const User =  (newUser) => {
-//     return new Promise( async(resolve, reject) => {
-//         const { name, email, password, phone } = newUser
 
-//         try {
-//             const checkUser = await User.findOne({
-//                 email:email
-//             })
-//             if(checkUser != null ) {
-//                 resolve({
-//                     status :'OK',
-//                     message : 'The Email is already'
-//                 })
-//             }
-//             const hash = bcrypt.hashSync(password,10)
-//             // console.log(hash);
+  const getDetailsUser = (id) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const user = await User.findOne({
+          _id: id
+        });
+        
+        if (user === null) {
+          resolve({
+            status: "OK",
+            message: "The User is not defined",
+          });
+        }
+  
+        resolve({
+          status: "OK",
+          message: "SUCCESS",
+          data:user
+          
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+ 
 
-//             const createUser = await User.create({
-//                 name,
-//                 email,
-//                 password :hash,
-//                 phone
-//             })
-//             if(createUser){
-//                 resolve({
-//                     status :'OK',
-//                     message:'SUCCESS',
-//                     data:createUser,
-//                 })
-
-//             }
-//         } catch (error) {
-//             reject(error)
-//         }
-//     })
-// }
 module.exports = {
   createUser,
   loginUser,
   updateUser,
   deleteUser,
-  getAllUser
+  getAllUser,
+  getDetailsUser,
+
 };
