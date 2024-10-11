@@ -3,10 +3,10 @@ const JwtService = require('../services/JwtServices')
 const createUser = async (req , res ) => {
     try {
         console.log(req.body);
-        const {name , email , password , confirmPassword , phone } = req.body
+        const {name , email , password , confirmPassword  } = req.body
         const reg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         const isCheckMail = reg.test(email)
-        if(!name || !email || !password || !confirmPassword || !phone){
+        if(!name || !email || !password || !confirmPassword ){
             return res.status(200).json({
                 status:'Err' ,
                 message:'The input is required'
@@ -34,10 +34,10 @@ const createUser = async (req , res ) => {
 const loginUser = async (req , res ) => {
     try {
         console.log(req.body);
-        const {name , email , password , confirmPassword , phone } = req.body
+        const { email , password  } = req.body
         const reg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         const isCheckMail = reg.test(email)
-        if(!name || !email || !password || !confirmPassword || !phone){
+        if(  !email || !password ){
             return res.status(200).json({
                 status:'Err' ,
                 message:'The input is required'
@@ -46,11 +46,6 @@ const loginUser = async (req , res ) => {
             return res.status(200).json({
                 status:'Err' ,
                 message:'The input is Email'
-            })
-        }else if(password !== confirmPassword){
-            return res.status(200).json({
-                status:'Err' ,
-                message:'The password is equal confirmPassword'
             })
         }
         const response = await UserService.loginUser(req.body)

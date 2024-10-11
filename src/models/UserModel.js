@@ -6,7 +6,7 @@
             name : {type: String , required:true},
             email : {type: String , required:true , unique:true},
             password : {type: String , required:true},
-            phone : {type: Number , required:true},
+            phone : {type: Number },
             address : {type: Number },
             ranking : {type:String },
             isAdmin : {type: Boolean ,default:false , required:true},
