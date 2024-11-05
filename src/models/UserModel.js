@@ -9,7 +9,12 @@
             phone : {type: Number },
             address : {type: Number },
             ranking : {type:String },
-            isAdmin : {type: Boolean ,default:false , required:true},
+            role: { 
+                type: String, 
+                enum: ['user', 'manager', 'admin'], 
+                default: 'user', 
+                required: true 
+            },
             access_token : {type: String ,default:false , required:true},
             refresh_token : {type: String ,default:false , required:true},
             deleted_at : {type: Date ,default:null },
