@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const { genneralAccessToken , genneralRefreshToken } = require("./JwtServices");
 const createUser = (newUser) => {
   return new Promise(async (resolve, reject) => {
-    const { name, email, password, confirmPassword } = newUser;
+    const { name, email, password , role } = newUser;
 
     try {
       const checkUser = await User.findOne({
@@ -17,12 +17,11 @@ const createUser = (newUser) => {
         });
       }
       const hash = bcrypt.hashSync(password, 10);
-      // console.log(hash);
-
       const createUser = await User.create({
         name,
         email,
         password: hash,
+        role: role || 'user',
         
       });
       if (createUser) {
@@ -40,7 +39,7 @@ const createUser = (newUser) => {
 
 const loginUser = (userLogin) => {
   return new Promise(async (resolve, reject) => {
-    const { email, password,  } = userLogin;
+    const { email, password} = userLogin;
 
     try {
       const checkUser = await User.findOne({
@@ -61,12 +60,12 @@ const loginUser = (userLogin) => {
       }
       const access_token = await genneralAccessToken({
         id: checkUser.id,
-        isAdmin: checkUser.isAdmin,
+        role: checkUser.role,
         name: checkUser.name,
       });
       const refresh_token = await genneralRefreshToken({
         id: checkUser.id,
-        isAdmin: checkUser.isAdmin,
+        role: checkUser.role,
         name: checkUser.name,
 
       });
@@ -86,10 +85,8 @@ const updateUser = (id, data) => {
     return new Promise(async (resolve, reject) => {
       try {
         const checkUser = await User.findOne({
-          _id: id
+          id: id
         });
-        console.log(checkUser);
-        
         if (checkUser === null) {
           resolve({
             status: "OK",
@@ -97,8 +94,11 @@ const updateUser = (id, data) => {
           });
         }
   
+        if (data.role) {
+          delete data.role;
+        }
+
         const updateUser = await User.findByIdAndUpdate(id , data ,{new :true})
-        console.log(updateUser);
         
       
         resolve({
@@ -117,7 +117,7 @@ const deleteUser = (id) => {
     return new Promise(async (resolve, reject) => {
       try {
         const checkUser = await User.findOne({
-          _id: id
+          id: id
         });
         
         if (checkUser === null) {
@@ -159,8 +159,8 @@ const getAllUser = () => {
     return new Promise(async (resolve, reject) => {
       try {
         const user = await User.findOne({
-          _id: id
-        });
+          id: id
+        }).select('-password');
         
         if (user === null) {
           resolve({

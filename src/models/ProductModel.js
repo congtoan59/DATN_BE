@@ -3,11 +3,13 @@ const mongoose = require("mongoose");
 const productSchema = new mongoose.Schema(
     {
         name: {type: String, required: true, unique: true},
-        type: {type: String, required: true},
         price: {type: Number, required: true},
         countInStock: {type: Number, required: true},
         description: {type: String, required: true},
-        deleted_at: {type: Date, default: null}
+        images: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductImage' }],
+        category: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
+        deleted_at: {type: Date, default: null},
+        
     },
     {
         timestamps: true,
@@ -16,8 +18,7 @@ const productSchema = new mongoose.Schema(
     }
 );
 
-// Thêm virtual để lấy danh sách ảnh
-productSchema.virtual('images', {
+productSchema.virtual('imageUrls', {
     ref: 'ProductImage',
     localField: '_id',
     foreignField: 'product'

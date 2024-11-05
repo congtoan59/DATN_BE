@@ -49,7 +49,14 @@ const loginUser = async (req , res ) => {
             })
         }
         const response = await UserService.loginUser(req.body)
-        return res.status(200).json(response)
+        const {refresh_token , ...newReponse} = response
+        res.cookie('refresh_token' ,refresh_token, {
+            httpOnly: true,
+            secure: false, // Bảo mật phía client
+            samesite :'strict',
+            path: '/'
+        })
+        return res.status(200).json(newReponse)
         
     } catch (error) {
         return res.status(404).json({
@@ -129,7 +136,7 @@ const getDetailsUser = async (req , res ) => {
 }
 const refreshToken = async (req , res ) => {
     try {
-        const token = req.headers.token
+        const token = req.cookies.refresh_token
         if(!token){
             return res.status(200).json({
                 status : 'Err',
@@ -146,6 +153,22 @@ const refreshToken = async (req , res ) => {
         })
     }
 }
+
+const logoutUser = async (req , res ) => {
+    try {
+        res.clearCookie('refresh_token')
+        
+        return res.status(200).json({
+            status : 'OK',
+            message : 'Logout succsess'
+        })
+        
+    } catch (error) {
+        return res.status(404).json({
+            message: error
+        })
+    }
+}
 module.exports = {
     createUser,
     loginUser,
@@ -153,5 +176,6 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailsUser,
-    refreshToken
+    refreshToken,
+    logoutUser
 }
