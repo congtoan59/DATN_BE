@@ -27,6 +27,7 @@ const createProduct = async (req, res) => {
   }
 };
 
+
 // UPDATE SẢN PHẨM CONTROL
 const updateProduct = async (req, res) => {
   try {
@@ -166,6 +167,16 @@ const getDetailProduct = async (req, res) => {
     });
   }
 };
+const getProductsByCategory = async (req, res) => {
+  const { categoryName } = req.params;
+
+  try {
+    const result = await ProductService.getProductsByCategory(categoryName);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ status: "FAILED", message: error.message });
+  }
+};
 
 module.exports = {
   createProduct,
@@ -177,4 +188,6 @@ module.exports = {
   softDeleteProduct,
   restoreProduct,
   getDeletedProducts,
+  getProductsByCategory
+  
 };
