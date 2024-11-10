@@ -200,7 +200,9 @@ const getAllProduct = () => {
       const allProduct = await Product.find().populate({
         path: "imageUrls",
         select: "url alt",
-      });
+        
+      })
+      .populate('category')
       resolve({
         status: "OK",
         message: "All User SUCCESS",
@@ -252,6 +254,37 @@ const getDetailProduct = (id) => {
     }
   });
 };
+// Lấy sản phẩm theo danh mục
+const getProductsByCategory = (categoryName) => {
+  return new Promise(async (resolve, reject) => {
+   try {
+    const category = await Category.findOne({name : categoryName});
+
+    if(!category){
+      return resolve({
+        status: "FAILED",
+        message: "Category not found",
+        data: [],
+      });
+    }
+    const products = await Product.find({
+      category : category._id,
+      deleted_at : null
+    })
+    .populate('imageUrls')
+    .populate('category')
+    .exec();
+
+    resolve({
+      status: "OK",
+      message: "Get products by category successfully",
+      data: products,
+    });
+   } catch (error) {
+    reject(error)
+   }
+  });
+};
 
 module.exports = {
   createProduct,
@@ -263,4 +296,5 @@ module.exports = {
   softDeleteProduct,
   getDeletedProducts,
   restoreProduct,
+  getProductsByCategory
 };

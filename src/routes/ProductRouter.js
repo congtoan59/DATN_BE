@@ -13,5 +13,6 @@ router.get("/detail/:id", ProductController.getDetailProduct);
 router.put("/soft-delete/:id", ProductController.softDeleteProduct);
 router.put("/restore/:id", ProductController.restoreProduct);
 router.get("/deleted", ProductController.getDeletedProducts);
+router.get('/category/:categoryName', ProductController.getProductsByCategory);
 
 module.exports = router;
