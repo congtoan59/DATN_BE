@@ -104,21 +104,41 @@ const restoreCategory = async (req, res) => {
 };
 
 const getDeletedCategorys = async (req, res) => {
-    try {
-      const response = await CategoryService.getDeletedCategorys();
-      return res.status(200).json(response);
-    } catch (error) {
-      return res.status(500).json({
-        status: "ERROR",
-        message: error.message,
-      });
-    }
-  };
+  try {
+    const response = await CategoryService.getDeletedCategorys();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      status: "ERROR",
+      message: error.message,
+    });
+  }
+};
 
 // Lấy Tất Cả  Danh Mục Controller
 const getAllCategory = async (req, res) => {
   try {
     const response = await CategoryService.getAllCategory();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+};
+//GET DETAIL Danh mục
+const getDetailCategory = async (req, res) => {
+  try {
+    const categoryId = req.params.id;
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(200).json({
+        status: "Err",
+        message: "The CategoryId is required",
+      });
+    }
+
+    const response = await CategoryService.getDetailCategory(categoryId);
     return res.status(200).json(response);
   } catch (error) {
     return res.status(404).json({
@@ -135,4 +155,5 @@ module.exports = {
   getAllCategory,
   getDeletedCategorys,
   restoreCategory,
+  getDetailCategory,
 };
