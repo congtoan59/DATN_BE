@@ -4,7 +4,8 @@ const ProductService = require("../services/ProductService");
 // TẠO SẢN PHẨM CONTROL
 const createProduct = async (req, res) => {
   try {
-    const { name, category , price, countInStock, description, images } = req.body;
+    const { name, category, price, countInStock, description, images } =
+      req.body;
     if (!name || !category || !price || !countInStock || !description) {
       return res.status(200).json({
         status: "Err",
@@ -26,7 +27,6 @@ const createProduct = async (req, res) => {
     });
   }
 };
-
 
 // UPDATE SẢN PHẨM CONTROL
 const updateProduct = async (req, res) => {
@@ -188,6 +188,5 @@ module.exports = {
   softDeleteProduct,
   restoreProduct,
   getDeletedProducts,
-  getProductsByCategory
-  
+  getProductsByCategory,
 };

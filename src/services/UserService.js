@@ -189,5 +189,4 @@ module.exports = {
   deleteUser,
   getAllUser,
   getDetailsUser,
-
 };

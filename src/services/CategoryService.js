@@ -137,19 +137,21 @@ const restoreCategory = (id) => {
 
 // Lấy Tất Cả Danh Mục Đã Xóa !
 const getDeletedCategorys = () => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const deletedCategorys = await Category.find({ deleted_at: { $ne: null } });
-        resolve({
-          status: "OK",
-          message: "Lấy danh sách sản phẩm đã xóa thành công",
-          data: deletedCategorys,
-        });
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
+  return new Promise(async (resolve, reject) => {
+    try {
+      const deletedCategorys = await Category.find({
+        deleted_at: { $ne: null },
+      });
+      resolve({
+        status: "OK",
+        message: "Lấy danh sách sản phẩm đã xóa thành công",
+        data: deletedCategorys,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 // Lấy tất cả Danh mục !
 const getAllCategory = () => {
@@ -166,7 +168,21 @@ const getAllCategory = () => {
     }
   });
 };
-
+// GET DETAIL SẢN PHẨM
+const getDetailCategory = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkCategory = await Category.findOne({ _id: id });
+      resolve({
+        status: "OK",
+        message: `DETAIL CATEGORY ${checkCategory.name}`,
+        data: checkCategory,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 module.exports = {
   createCategory,
   updateCategory,
@@ -175,4 +191,5 @@ module.exports = {
   restoreCategory,
   getDeletedCategorys,
   getAllCategory,
+  getDetailCategory,
 };

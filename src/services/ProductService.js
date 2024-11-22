@@ -1,6 +1,6 @@
 const Product = require("../models/ProductModel");
 const ProductImage = require("../models/ProductImageModel");
-const Category = require("../models/CategoryModel")
+const Category = require("../models/CategoryModel");
 const User = require("../models/ProductModel");
 const cloudinary = require("cloudinary").v2;
 
@@ -15,7 +15,8 @@ cloudinary.config({
 // TẠO MỚI SẢN PHẨM
 const createProduct = async (newProduct) => {
   try {
-    const { name, category, price, countInStock, description, images } = newProduct;
+    const { name, category, price, countInStock, description, images } =
+      newProduct;
 
     const existingProduct = await Product.findOne({ name });
     if (existingProduct) {
@@ -33,7 +34,6 @@ const createProduct = async (newProduct) => {
       countInStock,
       description,
       images: [],
-      
     });
 
     const imagePromises = images.map(async (imageUrl, index) => {
@@ -52,7 +52,7 @@ const createProduct = async (newProduct) => {
     await createdProduct.save();
 
     await Category.findByIdAndUpdate(category, {
-      $push: { products: createdProduct._id }
+      $push: { products: createdProduct._id },
     });
 
     const populatedProduct = await Product.findById(createdProduct._id)
@@ -197,12 +197,12 @@ const restoreProduct = (id) => {
 const getAllProduct = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const allProduct = await Product.find().populate({
-        path: "imageUrls",
-        select: "url alt",
-        
-      })
-      .populate('category')
+      const allProduct = await Product.find()
+        .populate({
+          path: "imageUrls",
+          select: "url alt",
+        })
+        .populate("category");
       resolve({
         status: "OK",
         message: "All User SUCCESS",
@@ -257,32 +257,32 @@ const getDetailProduct = (id) => {
 // Lấy sản phẩm theo danh mục
 const getProductsByCategory = (categoryName) => {
   return new Promise(async (resolve, reject) => {
-   try {
-    const category = await Category.findOne({name : categoryName});
+    try {
+      const category = await Category.findOne({ name: categoryName });
 
-    if(!category){
-      return resolve({
-        status: "FAILED",
-        message: "Category not found",
-        data: [],
+      if (!category) {
+        return resolve({
+          status: "FAILED",
+          message: "Category not found",
+          data: [],
+        });
+      }
+      const products = await Product.find({
+        category: category._id,
+        deleted_at: null,
+      })
+        .populate("imageUrls")
+        .populate("category")
+        .exec();
+
+      resolve({
+        status: "OK",
+        message: "Get products by category successfully",
+        data: products,
       });
+    } catch (error) {
+      reject(error);
     }
-    const products = await Product.find({
-      category : category._id,
-      deleted_at : null
-    })
-    .populate('imageUrls')
-    .populate('category')
-    .exec();
-
-    resolve({
-      status: "OK",
-      message: "Get products by category successfully",
-      data: products,
-    });
-   } catch (error) {
-    reject(error)
-   }
   });
 };
 
@@ -296,5 +296,5 @@ module.exports = {
   softDeleteProduct,
   getDeletedProducts,
   restoreProduct,
-  getProductsByCategory
+  getProductsByCategory,
 };
