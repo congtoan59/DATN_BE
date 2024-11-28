@@ -20,7 +20,7 @@ const createProduct = async (newProduct) => {
     const existingProduct = await Product.findOne({ name });
     if (existingProduct) {
       return {
-        status: "OK",
+        status: "Failed",
         message: "Sản phẩm đã tồn tại",
       };
     }
