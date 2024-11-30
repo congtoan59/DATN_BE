@@ -1,7 +1,12 @@
 const User = require("../models/UserModel");
+const JwtService = require('./JwtServices')
 const bcrypt = require("bcrypt");
+const nodemailer = require('nodemailer')
+const jwt = require('jsonwebtoken');
+const emailTemplate = require('../views/emailTemplate');
 
-const { genneralAccessToken , genneralRefreshToken } = require("./JwtServices");
+
+const { genneralAccessToken , genneralRefreshToken , generateResetToken } = require("./JwtServices");
 const createUser = (newUser) => {
   return new Promise(async (resolve, reject) => {
     const { name, email, password , role } = newUser;
@@ -180,7 +185,84 @@ const getAllUser = () => {
       }
     });
   };
- 
+
+  const resetPwd = (email) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const user = await User.findOne({
+          email: email
+        }).select('-password');
+        
+        if (user === null) {
+          resolve({
+            status: "OK",
+            message: "Khôgn tồn tại email",
+          });
+        }else{
+
+          const transporter = nodemailer.createTransport({
+            service: 'Gmail', 
+            auth: {
+                user: 'hthien.fv@gmail.com', 
+                pass: 'ghvg vunu cslm ldds', 
+            }
+          });
+          //Gửi mail đi
+          const resetToken = JwtService.generateResetToken(email)
+          const resetLink = `http://localhost:5173/changepwd/${resetToken}`;
+          const cusName = user.name
+          const emailContent = emailTemplate(resetLink, cusName)
+          await transporter.sendMail({
+              from: 'no-reply@Sixstars.com',
+              to: email,
+              subject: 'Password Reset Request',
+              html: emailContent
+          },(error, info) => {
+                if (error) {
+                    console.error('Error:', error);
+                } else {
+                    console.log('Email sent:', info.response);
+                }
+            }
+          )
+          resolve({
+            status: "200",
+            message: "Vui long kiểm tra gmail của bạn!",
+          });
+        }  
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  const changePwd = (newPassword, token) =>{
+    return new Promise(async(resolve, reject) => {
+     try {
+
+      jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+        if (err) {
+          return res.status(400).json({ message: 'Token không hợp lệ' });
+        }else{
+          console.log('Token OK!!!',newPassword)
+        }
+        
+    
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        console.log(hashedPassword)
+        await User.updateOne({ email: decoded.email }, { password: hashedPassword });
+        const data = await User.findOne({ email: decoded.email })
+        resolve({
+          status: "200",
+          message: "Mật khẩu đã được thay đổi!",
+          email: data.email
+        });
+      });
+     } catch (error) {
+        reject(error);
+     } 
+    })
+  }
 
 module.exports = {
   createUser,
@@ -189,4 +271,6 @@ module.exports = {
   deleteUser,
   getAllUser,
   getDetailsUser,
+  resetPwd,
+  changePwd
 };
