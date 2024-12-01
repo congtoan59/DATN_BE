@@ -292,5 +292,4 @@ module.exports = {
   verifyTokenAndGetUser,
   changePwd,
   resetPwd
-
 };
