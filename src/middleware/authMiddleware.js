@@ -41,9 +41,6 @@ const authUserMiddleware = (req, res, next) => {
 
     const userId = req.params.id
 
-    console.log(token);
-
-    
     jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
         if (err) {
             return res.status(404).json({
@@ -52,7 +49,7 @@ const authUserMiddleware = (req, res, next) => {
             })
         }
         req.user = user;
-        if (user.role === 'user' || user.role === 'admin' ||user.role === 'manager' || user?.id === userId) {
+        if (user.role === 'user' || user.role === 'admin' || user.role === 'manager' || user?.id === userId) {
             next()
         }
         else {
