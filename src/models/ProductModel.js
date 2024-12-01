@@ -9,7 +9,6 @@ const productSchema = new mongoose.Schema(
         images: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductImage' }],
         category: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
         deleted_at: {type: Date, default: null},
-        
     },
     {
         timestamps: true,

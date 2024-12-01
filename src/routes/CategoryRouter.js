@@ -10,5 +10,6 @@ router.get("/", CategoryController.getAllCategory);
 router.put("/soft-delete/:id", CategoryController.softDeleteCategory);
 router.put("/restore/:id", CategoryController.restoreCategory);
 router.get("/deleted", CategoryController.getDeletedCategorys);
+router.get("/detail/:id", CategoryController.getDetailCategory);
 
 module.exports = router;
