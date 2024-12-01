@@ -43,6 +43,11 @@ cartSchema.methods.calculateTotalPrice = function () {
         return total + (item.price * item.quantity);
     }, 0);
 };
+cartSchema.methods.clearCart = async function () {
+    this.items = [];
+    this.totalPrice = 0;
+    await this.save();
+  };
 
 const Cart = mongoose.model('Cart', cartSchema);
 

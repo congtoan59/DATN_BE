@@ -1,12 +1,16 @@
 const Order = require("../models/OrderModel");
+const Cart = require("../models/CartModel");
+const Product = require("../models/ProductModel");
 const { genneralAccessToken } = require("../services/JwtServices");
 const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose')
 
 const createOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    // const token = req.params.token;
     const token = req.headers.authorization?.split(' ')[1];
-    console.log('token', token);
 
     if (!token) {
       return res.status(401).json({
@@ -25,6 +29,33 @@ const createOrder = async (req, res) => {
       totalPrice,
     } = req.body;
 
+    // Kiểm tra số lượng sản phẩm trong kho
+    for (const item of orderItems) {
+      const product = await Product.findById(item.product);
+
+      if (!product) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({
+          status: "Error",
+          message: `Sản phẩm ${item.name} không tồn tại`,
+        });
+      }
+
+      if (product.countInStock < item.amount) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({
+          status: "Error",
+          message: `Sản phẩm ${product.name} không đủ số lượng. Chỉ còn ${product.countInStock} sản phẩm`,
+        });
+      }
+
+      // Trừ số lượng sản phẩm trong kho
+      product.countInStock -= item.amount;
+      await product.save({ session });
+    }
+
     const newOrder = new Order({
       orderItems,
       shippingAdress,
@@ -37,17 +68,24 @@ const createOrder = async (req, res) => {
       isDelivered: false,
     });
 
-    const savedOrder = await newOrder.save();
-    // await Cart.findOneAndUpdate(
-    //   { user: req.user.id },
-    //   { $set: { items: [], totalPrice: 0 } }
-    // );
+    const savedOrder = await newOrder.save({ session });
+    const cart = await Cart.findOne({ user: user.id });
+    if (cart) {
+      await cart.clearCart();
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
     res.status(200).json({
       status: "OK",
       message: "Đặt hàng thành công !",
       data: savedOrder,
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
     res.status(500).json({
       status: "Error",
       message: "Lỗi khi tạo đơn hàng",
@@ -97,7 +135,6 @@ const getOrdersByUser = async (req, res) => {
     const token = req.headers.token;
     const userId = req.headers.id
 
-
     if (!token) {
       return res.status(401).json({
         status: 'Error',
@@ -114,9 +151,13 @@ const getOrdersByUser = async (req, res) => {
       })
     }
     const orders = await Order.find({ user: userId })
-      .populate('orderItems.product', 'name imageUrls')
-      .sort({ createdAt: -1 });
-
+      .populate({
+        path: 'orderItems.product',
+        populate: {
+          path: 'imageUrls',
+          model: 'ProductImage'
+        }
+      });
 
     // Tạo access token mới
     const newAccessToken = await genneralAccessToken({
@@ -208,7 +249,7 @@ const updateOrderStatus = async (req, res) => {
 const cancelOrder = async (req, res) => {
   try {
     const token = req.headers.token;
-    const orderId = req.headers.id;
+    const orderId = req.params.id;
 
     if (!token) {
       return res.status(401).json({
@@ -264,8 +305,16 @@ const cancelOrder = async (req, res) => {
 const getOrderById = async (req, res) => {
   try {
     const orderId = req.params.id;
+
     const order = await Order.findById(orderId)
-      .populate('orderItems.product');
+      .populate({
+        path: 'orderItems.product',
+        populate: {
+          path: 'imageUrls',
+          model: 'ProductImage'
+        }
+      });
+
 
     if (!order) {
       return res.status(404).json({
@@ -300,5 +349,5 @@ module.exports = {
   getOrdersByUser,
   updateOrderStatus,
   cancelOrder,
-  getOrderById
+  getOrderById,
 };

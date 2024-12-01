@@ -125,15 +125,22 @@ const updateCartItem = async (req, res) => {
 const removeCartItem = async (req, res) => {
     try {
         const { cartItemId } = req.params;
-        const userId = req.user._id;
+        const userId = req.user.id;
 
+        // Tìm giỏ hàng
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             return res.status(404).json({ message: 'Cart not found' });
         }
-        cart.items = cart.items.filter(
-            item => item._id.toString() !== cartItemId
+
+        // Xóa item bằng phương thức remove của mongoose
+        const itemIndex = cart.items.findIndex(
+            item => item._id.toString() === cartItemId
         );
+
+
+        cart.items.splice(itemIndex, 1);
+
         cart.calculateTotalPrice();
 
         await cart.save();
@@ -143,6 +150,7 @@ const removeCartItem = async (req, res) => {
             cart
         });
     } catch (error) {
+        console.error('Error removing cart item:', error);
         res.status(500).json({
             message: 'Error removing cart item',
             error: error.message
@@ -153,13 +161,13 @@ const removeCartItem = async (req, res) => {
 const clearCart = async (req, res) => {
     try {
         await Cart.findOneAndDelete({ user: req.user.id });
-        res.status(200).json({ 
-            message: 'Đã xóa giỏ hàng' 
+        res.status(200).json({
+            message: 'Đã xóa giỏ hàng'
         });
     } catch (error) {
-        res.status(500).json({ 
+        res.status(500).json({
             message: 'Lỗi khi xóa giỏ hàng',
-            error: error.message 
+            error: error.message
         });
     }
 };
