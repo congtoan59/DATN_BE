@@ -9,12 +9,20 @@ const genneralAccessToken = (payload) => {
     return access_token;
 }
 
+
+
 const genneralRefreshToken = (payload) => {
     const refresh_token = jwt.sign({
         ...payload
     }, process.env.REFRESH_TOKEN, { expiresIn: '7d' });
     return refresh_token;
 }
+
+const generateResetToken = (email) => {
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Token có thời gian hết hạn 1 giờ
+    return token;
+};
+  
 
 const refreshTokenJwtService = (token) => {
     return new Promise((resolve, reject) => {
@@ -47,5 +55,6 @@ const refreshTokenJwtService = (token) => {
 module.exports = {
     genneralAccessToken,
     genneralRefreshToken,
+    generateResetToken,
     refreshTokenJwtService
 };

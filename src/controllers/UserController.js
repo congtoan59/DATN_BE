@@ -1,5 +1,7 @@
 const UserService = require('../services/UserService')
 const JwtService = require('../services/JwtServices')
+const User = require("../models/UserModel")
+const jwt = require('jsonwebtoken');
 const createUser = async (req , res ) => {
     try {
         console.log(req.body);
@@ -169,6 +171,42 @@ const logoutUser = async (req , res ) => {
         })
     }
 }
+const resetPwd = async (req , res ) => {
+    try {
+        const email = req.body.email
+        if(!email){
+            return res.status(200).json({
+                status : 'Err',
+                message : 'The Email is required'
+            })
+        }
+
+        const response = await UserService.resetPwd(email )
+        return res.status(200).json(response)
+        
+    } catch (error) {
+        return res.status(404).json({
+            message: error.message
+        })
+    }
+}
+
+const changePwd = async (req, res) => {
+   try {
+        const newPassword = req.body.newPassword;
+        const token = req.headers.token;
+        console.log(token)
+        
+        const change = await UserService.changePwd(newPassword, token)
+        res.status(200).json({ 
+            data: change
+        })
+        
+   } catch (error) {
+        console.log(error);
+   }
+  };
+  
 module.exports = {
     createUser,
     loginUser,
@@ -177,5 +215,7 @@ module.exports = {
     getAllUser,
     getDetailsUser,
     refreshToken,
-    logoutUser
+    logoutUser,
+    resetPwd,
+    changePwd
 }
