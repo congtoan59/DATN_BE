@@ -3,13 +3,14 @@ const ProductRouter = require('./ProductRouter')
 const CategoryRouter = require('./CategoryRouter')
 const OrderRouter = require('./OrderRouter')
 const CartRouter = require('./CartRouter')
+const VoucherRouter = require('./VoucherRouter')
 const routes = (app) => {
     app.use('/api/user', UserRouter)
     app.use('/api/product', ProductRouter)
     app.use('/api/category', CategoryRouter)
     app.use('/api/cart', CartRouter)
     app.use('/api/order', OrderRouter)
-
+    app.use('/api/voucher' ,VoucherRouter)
 }
 
 module.exports = routes
