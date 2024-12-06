@@ -19,7 +19,7 @@ const genneralRefreshToken = (payload) => {
 }
 
 const generateResetToken = (email) => {
-    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Token có thời gian hết hạn 1 giờ
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' }); 
     return token;
 };
   

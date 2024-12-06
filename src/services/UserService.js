@@ -1,6 +1,9 @@
 const User = require("../models/UserModel");
+const JwtService = require('../services/JwtServices')
 const bcrypt = require("bcrypt");
+const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken')
+const emailTemplate = require('../views/emailTemplate');
 
 const { genneralAccessToken, genneralRefreshToken } = require("./JwtServices");
 const createUser = (newUser) => {
@@ -254,6 +257,8 @@ const resetPwd = (email) => {
 }
 
 const changePwd = (newPassword, token) => {
+  console.log(token);
+
   return new Promise(async (resolve, reject) => {
     try {
 
