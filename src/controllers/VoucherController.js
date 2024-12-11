@@ -130,7 +130,7 @@ const claimVoucher = async (req, res) => {
         await userVoucherUsage.save();
         
         voucher.claimCount += 1;
-        await voucher.save();
+        await (userVoucherUsage,voucher).save();
         res.status(200).json({
             status: 'OK',
             message: 'Nhận voucher thành công',
@@ -218,14 +218,143 @@ const getAvailableVouchers = async (req, res) => {
     }
 };
 
+const getMyVoucher = async (req, res) => {
+  try {
+    const token = req.headers.token;
 
+    if (!token) {
+      return res.status(401).json({
+        status: 'Error',
+        message: 'Không tìm thấy token'
+      });
+    }
 
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
+    const userId = decoded.id;
 
+    // Lấy danh sách voucher mà user đã nhận hôm nay
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const userVoucherUsage = await UserVoucherUsage.findOne({
+      user: userId,
+      date: { $gte: today }
+    }).populate('vouchersUsedToday.voucher'); // Lấy thông tin chi tiết voucher
+
+    if (!userVoucherUsage || userVoucherUsage.vouchersUsedToday.length === 0) {
+      return res.status(200).json({
+        status: 'OK',
+        message: 'Bạn chưa nhận voucher nào hôm nay',
+        data: []
+      });
+    }
+
+    // Chuẩn bị danh sách voucher
+    const allVouchers = userVoucherUsage.vouchersUsedToday.map(item => ({
+      voucherId: item.voucher._id,
+      code: item.voucher.code,
+      discountType: item.voucher.discountType,
+      discountValue: item.voucher.discountValue,
+      isUsed: item.isUsed || false, // Nếu `isUsed` không có, mặc định là false
+      usedAt: item.isUsed ? item.usedAt : null // Chỉ hiện `usedAt` nếu đã sử dụng
+    }));
+
+    res.status(200).json({
+      status: 'OK',
+      message: 'Danh sách tất cả voucher đã nhận hôm nay',
+      data: allVouchers
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'Error',
+      message: 'Lỗi khi lấy danh sách voucher',
+      error: error.message
+    });
+  }
+};
+
+const cancelClaimVoucher = async (req, res) => {
+  try {
+    const token = req.headers.token;
+
+    if (!token) {
+      return res.status(401).json({
+        status: 'Error',
+        message: 'Không tìm thấy token'
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
+    const userId = decoded.id;
+
+    const { voucherId } = req.body;
+
+    if (!voucherId) {
+      return res.status(400).json({
+        status: 'Error',
+        message: 'Vui lòng cung cấp voucherId để hủy claim'
+      });
+    }
+
+    // Lấy userVoucherUsage của user hôm nay
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const userVoucherUsage = await UserVoucherUsage.findOne({
+      user: userId,
+      date: { $gte: today }
+    });
+
+    if (!userVoucherUsage) {
+      return res.status(404).json({
+        status: 'Error',
+        message: 'Không tìm thấy thông tin voucher đã nhận hôm nay'
+      });
+    }
+
+    // Tìm và xóa voucher khỏi vouchersUsedToday
+    const initialLength = userVoucherUsage.vouchersUsedToday.length;
+
+    userVoucherUsage.vouchersUsedToday = userVoucherUsage.vouchersUsedToday.filter(
+      item => item.voucher.toString() !== voucherId
+    );
+
+    if (userVoucherUsage.vouchersUsedToday.length === initialLength) {
+      return res.status(404).json({
+        status: 'Error',
+        message: 'Voucher không tồn tại trong danh sách đã nhận hôm nay'
+      });
+    }
+
+    await userVoucherUsage.save();
+
+    // Giảm claimCount trên model Voucher
+    const voucher = await Voucher.findById(voucherId);
+    if (voucher) {
+      voucher.claimCount = Math.max(0, voucher.claimCount - 1); // Không cho claimCount < 0
+      await voucher.save();
+    }
+
+    res.status(200).json({
+      status: 'OK',
+      message: 'Hủy claim voucher thành công',
+      data: { voucherId }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'Error',
+      message: 'Lỗi khi hủy claim voucher',
+      error: error.message
+    });
+  }
+};
 
 
 module.exports = {
     createVoucher,
     claimVoucher,
     resetDailyVoucherUsage,
-    getAvailableVouchers
+    getAvailableVouchers,
+    getMyVoucher,
+    cancelClaimVoucher
 };

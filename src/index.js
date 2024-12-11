@@ -36,9 +36,9 @@ mongoose.connect(`${process.env.MONGO_DB}`)
 })
 
 // Chạy vào lúc 0h hàng ngày để reset voucher
-// cron.schedule('0 0 * * *', () => {
-//     resetDailyVoucherUsage();
-//   });
+cron.schedule('0 0 * * *', () => {
+    resetDailyVoucherUsage();
+  });
 
 app.listen(port , () => {
     console.log('Server is running in port ', +port );

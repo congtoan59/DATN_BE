@@ -11,6 +11,10 @@ const UserVoucherUsageSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Voucher'
     },
+    isUsed: { // Trạng thái sử dụng
+      type: Boolean,
+      default: false
+    },
     usedAt: {
       type: Date,
       default: Date.now
