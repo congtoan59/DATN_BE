@@ -1,10 +1,138 @@
 const Order = require("../models/OrderModel");
 const Cart = require("../models/CartModel");
 const Product = require("../models/ProductModel");
+const Voucher = require('../models/VoucherModel')
 const { genneralAccessToken } = require("../services/JwtServices");
 const jwt = require("jsonwebtoken");
 const mongoose = require('mongoose')
 
+// const createOrder = async (req, res) => {
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     const token = req.headers.authorization?.split(' ')[1];
+
+//     if (!token) {
+//       return res.status(401).json({
+//         status: "Error",
+//         message: "Không tìm thấy token",
+//       });
+//     }
+
+//     const user = jwt.verify(token, process.env.ACCESS_TOKEN);
+//     const {
+//       orderItems,
+//       shippingAdress,
+//       paymentMethod,
+//       itemsPrice,
+//       shippingPrice,
+//       totalPrice,
+//       // voucher
+//     } = req.body;
+
+//     // if (voucher) {
+//     //   const voucherDetail = await Voucher.findById(voucher);
+
+//     //   if (!voucherDetail || !voucherDetail.isActive) {
+//     //     await session.abortTransaction();
+//     //     session.endSession();
+//     //     return res.status(400).json({
+//     //       status: "Error",
+//     //       message: "Voucher không hợp lệ"
+//     //     });
+//     //   }
+//     //   if (voucherDetail.minOrderValue && totalPrice < voucherDetail.minOrderValue) {
+//     //     await session.abortTransaction();
+//     //     session.endSession();
+//     //     return res.status(400).json({
+//     //       status: "Error",
+//     //       message: `Voucher chỉ áp dụng cho đơn hàng từ ${voucherDetail.minOrderValue.toLocaleString()} VNĐ`
+//     //     });
+//     //   }
+
+//     //   // Tính lại giá trị đơn hàng sau khi áp dụng voucher
+//     //   let discountAmount = 0;
+//     //   if (voucherDetail.discountType === 'percentage') {
+//     //     discountAmount = (totalPrice * voucherDetail.discountValue) / 100;
+//     //     if (voucherDetail.maxDiscountAmount && discountAmount > voucherDetail.maxDiscountAmount) {
+//     //       discountAmount = voucherDetail.maxDiscountAmount;
+//     //     }
+//     //   } else if (voucherDetail.discountType === 'fixed') {
+//     //     discountAmount = voucherDetail.discountValue;
+//     //   }
+
+//     //   const finalTotalPrice = totalPrice - discountAmount;
+
+
+//       // Kiểm tra số lượng sản phẩm trong kho
+//       for (const item of orderItems) {
+//         const product = await Product.findById(item.product);
+
+//         if (!product) {
+//           await session.abortTransaction();
+//           session.endSession();
+//           return res.status(404).json({
+//             status: "Error",
+//             message: `Sản phẩm ${item.name} không tồn tại`,
+//           });
+//         }
+
+//         if (product.countInStock < item.amount) {
+//           await session.abortTransaction();
+//           session.endSession();
+//           return res.status(400).json({
+//             status: "Error",
+//             message: `Sản phẩm ${product.name} không đủ số lượng. Chỉ còn ${product.countInStock} sản phẩm`,
+//           });
+//         }
+
+//         // Trừ số lượng sản phẩm trong kho
+//         product.countInStock -= item.amount;
+//         await product.save({ session });
+//       }
+
+//       const newOrder = new Order({
+//         orderItems,
+//         shippingAdress,
+//         paymentMethod,
+//         itemsPrice,
+//         shippingPrice,
+//         totalPrice: finalTotalPrice,
+//         // voucher: voucher,
+//         user: user.id,
+//         isPaid: false,
+//         isDelivered: false,
+//       });
+//       voucherDetail.claimCount += 1;
+//       await voucherDetail.save({ session });
+
+//       const savedOrder = await newOrder.save({ session });
+//       const cart = await Cart.findOne({ user: user.id });
+//       if (cart) {
+//         await cart.clearCart();
+//       }
+
+//       await session.commitTransaction();
+//       session.endSession();
+
+//       res.status(200).json({
+//         status: "OK",
+//         message: "Đặt hàng thành công !",
+//         data: savedOrder,
+//       });
+//     }
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+
+//     res.status(500).json({
+//       status: "Error",
+//       message: "Lỗi khi tạo đơn hàng",
+//       error: error.message
+//     });
+//   }
+// };
 const createOrder = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -96,7 +224,8 @@ const createOrder = async (req, res) => {
 
 const getAllOrder = async (req, res) => {
   try {
-    const token = req.headers.token;
+    // const token = req.headers.token;
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({
@@ -111,7 +240,7 @@ const getAllOrder = async (req, res) => {
       .sort({ createdAt: -1 });
 
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
-    const newAccessToken = await genneralAccessToken({
+    const newAccessToken = genneralAccessToken({
       id: decoded.id,
       role: decoded.role,
       name: decoded.name

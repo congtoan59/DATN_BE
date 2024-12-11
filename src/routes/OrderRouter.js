@@ -10,8 +10,8 @@ const {
 
 
 router.post('/createe', authUserMiddleware, orderController.createOrder)
-router.get('/:id', authUserMiddleware, orderController.getOrderById)
-router.get('/getAll', authUserMiddleware, orderController.getAllOrder)
+// router.get('/:id', authUserMiddleware, orderController.getOrderById)
+router.get('/getAll', authMiddleware, orderController.getAllOrder)
 router.get('/user/:userId', authUserMiddleware, orderController.getOrdersByUser)
 router.put('/status/:orderId', authMiddleware, orderController.updateOrderStatus)
 router.delete('/cancel/:id', authUserMiddleware, orderController.cancelOrder)

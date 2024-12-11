@@ -36,6 +36,9 @@ const orderSchema = new mongoose.Schema({
         ],
         default: 'Chờ xác nhận đơn hàng',
     },
+    voucher: {
+        type: mongoose.Schema.Types.ObjectId, ref: 'Voucher', default: null
+    },
     deliveredAt: { type: Date },
 },
     {
