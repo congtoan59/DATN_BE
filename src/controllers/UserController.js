@@ -16,15 +16,18 @@ const createUser = async (req, res) => {
         } else if (!isCheckMail) {
             return res.status(200).json({
                 status: 'Err',
-                message: 'The input is Email'
+                message: 'Định dạng email không hợp lệ'
             })
         } else if (password !== confirmPassword) {
             return res.status(200).json({
                 status: 'Err',
-                message: 'The password is equal confirmPassword'
+                message: 'Mật khẩu phải trùng với mật khẩu xác nhận.'
             })
         }
         const response = await UserService.createUser(req.body)
+        if (response.status === "ERR") {
+            return res.status(200).json(response);
+        }
         return res.status(200).json(response)
 
     } catch (error) {

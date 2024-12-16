@@ -9,15 +9,17 @@ const { genneralAccessToken, genneralRefreshToken } = require("./JwtServices");
 const createUser = (newUser) => {
   return new Promise(async (resolve, reject) => {
     const { name, email, password, role } = newUser;
+    console.log('newUser', newUser);
+
 
     try {
       const checkUser = await User.findOne({
         email: email,
       });
-      if (checkUser != null) {
-        resolve({
-          status: "OK",
-          message: "The Email is already",
+      if (checkUser) {
+        return resolve({
+          status: "ERR",
+          message: "Email đã tồn tại",
         });
       }
       const hash = bcrypt.hashSync(password, 10);
@@ -28,13 +30,11 @@ const createUser = (newUser) => {
         role: role || 'user',
 
       });
-      if (createUser) {
-        resolve({
-          status: "OK",
-          message: "SUCCESS",
-          data: createUser,
-        });
-      }
+      resolve({
+        status: "OK",
+        message: "User created successfully",
+        data: createUser,
+      });
     } catch (error) {
       reject(error);
     }
