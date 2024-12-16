@@ -205,7 +205,7 @@ const getAllProduct = () => {
         .populate("category");
       resolve({
         status: "OK",
-        message: "All User SUCCESS",
+        message: "ALL PRODUCTS",
         data: allProduct,
       });
     } catch (error) {

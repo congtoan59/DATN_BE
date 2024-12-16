@@ -176,6 +176,46 @@ const getProductsByCategory = async (req, res) => {
   } catch (error) {
     res.status(500).json({ status: "FAILED", message: error.message });
   }
+}
+
+
+const searchProducts = async (req, res) => {
+  const { keyword } = req.body; // Lấy keyword từ body
+  console.log("Keyword:", keyword);
+
+  try {
+      const filter = { isActive: true };
+
+      if (keyword) {
+        filter.name = { $regex: keyword, $options: 'i' };
+      }
+
+      console.log("Filter:", filter);
+
+      const products = await Product.find(filter);
+      if(products.length === 0){
+        res.status(200).json({
+          status: 'Không tìm thấy sản phẩm',
+          data: products,
+        });
+      }else{
+        res.status(200).json({
+          status: 'OK',
+          data: products,
+        });
+      }
+
+      
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 'Error',
+      message: 'Lỗi khi tìm kiếm sản phẩm',
+      error: error.message,
+    });
+  }
+
+  
 };
 
 module.exports = {
@@ -189,4 +229,5 @@ module.exports = {
   restoreProduct,
   getDeletedProducts,
   getProductsByCategory,
+  searchProducts
 };
