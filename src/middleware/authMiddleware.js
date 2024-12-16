@@ -1,52 +1,64 @@
 const jwt = require('jsonwebtoken')
 const dotenv = require('dotenv')
 dotenv.config()
-const authMiddleware = (req , res , next) =>{
-    
-    const token = req.headers.token
+const authMiddleware = (req, res, next) => {
+
+    // const token = req.headers.token
+    const token = req.headers.authorization?.split(' ')[1];
+
     console.log(token);
-    jwt.verify(token, process.env.ACCESS_TOKEN , function(err, user) {
-        if(err){
+
+    if (!token) {
+        return res.status(401).json({
+            message: 'Không tìm thấy Token',
+            status: 'error'
+        })
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
+        if (err) {
             return res.status(404).json({
-                message: 'The authmetication',
-                status :'Error 1'
+                message: 'The authmetication 1',
+                status: 'Error 1'
             })
         }
-        const {payload} = user
-        
-        if(payload?.isAdmin){
+        req.user = user;
+        if (user.role === 'admin' || user.role === 'manager') {
             next()
-        }else {
+        } else {
             return res.status(404).json({
-                message :'The Authmetication',
-                status :'error'
+                message: 'The Authmetication 2',
+                status: 'error'
             })
         }
-      });
+    });
+
 }
-const authUserMiddleware = (req , res , next) =>{
-    
-    const token = req.headers.token
+const authUserMiddleware = (req, res, next) => {
+
+    // const token = req.headers.token
+    const token = req.headers.authorization?.split(' ')[1];
+
     const userId = req.params.id
-    console.log(token);
-    jwt.verify(token, process.env.ACCESS_TOKEN , function(err, user) {
-        if(err){
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
+        if (err) {
             return res.status(404).json({
-                message: 'The authmetication',
-                status :'Error 1'
+                message: 'The authmetication 3',
+                status: 'Error'
             })
         }
-        const {payload} = user
-        
-        if(payload?.isAdmin || payload?.id === userId){
+        req.user = user;
+        if (user.role === 'user' || user.role === 'admin' || user.role === 'manager' || user?.id === userId) {
             next()
-        }else {
+        }
+        else {
             return res.status(404).json({
-                message :'The Authmetication',
-                status :'error'
+                message: 'The Authmetication 4',
+                status: 'error'
             })
         }
-      });
+    });
 }
 
 module.exports = {
