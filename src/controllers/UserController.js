@@ -2,7 +2,7 @@ const UserService = require('../services/UserService')
 const JwtService = require('../services/JwtServices')
 const User = require("../models/UserModel")
 const jwt = require('jsonwebtoken');
-const createUser = async (req , res ) => {
+const createUser = async (req, res) => {
     try {
         console.log(req.body);
         const { name, email, password, confirmPassword } = req.body
@@ -16,15 +16,18 @@ const createUser = async (req , res ) => {
         } else if (!isCheckMail) {
             return res.status(200).json({
                 status: 'Err',
-                message: 'The input is Email'
+                message: 'Định dạng email không hợp lệ'
             })
         } else if (password !== confirmPassword) {
             return res.status(200).json({
                 status: 'Err',
-                message: 'The password is equal confirmPassword'
+                message: 'Mật khẩu phải trùng với mật khẩu xác nhận.'
             })
         }
         const response = await UserService.createUser(req.body)
+        if (response.status === "ERR") {
+            return res.status(200).json(response);
+        }
         return res.status(200).json(response)
 
     } catch (error) {
@@ -218,19 +221,22 @@ const verifyToken = async (req, res) => {
         });
     }
 };
-const resetPwd = async (req , res ) => {
+const resetPwd = async (req, res) => {
+
     try {
         const email = req.body.email
-        if(!email){
+        console.log(email);
+
+        if (!email) {
             return res.status(200).json({
-                status : 'Err',
-                message : 'The Email is required'
+                status: 'Err',
+                message: 'The Email is required'
             })
         }
 
-        const response = await UserService.resetPwd(email )
+        const response = await UserService.resetPwd(email)
         return res.status(200).json(response)
-        
+
     } catch (error) {
         return res.status(404).json({
             message: error.message
@@ -239,21 +245,20 @@ const resetPwd = async (req , res ) => {
 }
 
 const changePwd = async (req, res) => {
-   try {
+    try {
         const newPassword = req.body.newPassword;
-        const token = req.headers.token;
-        console.log(token)
-        
+        // const token = req.headers.token;
+        const token = req.headers.authorization?.split(' ')[1];
         const change = await UserService.changePwd(newPassword, token)
-        res.status(200).json({ 
+        res.status(200).json({
             data: change
         })
-        
-   } catch (error) {
+
+    } catch (error) {
         console.log(error);
-   }
-  };
-  
+    }
+};
+
 module.exports = {
     createUser,
     loginUser,
