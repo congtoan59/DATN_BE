@@ -30,13 +30,27 @@ const orderSchema = new mongoose.Schema({
         type: String,
         enum: [
             'Chờ xác nhận đơn hàng',
+            'Đơn hàng đã bị từ chối',
             'Đơn hàng đang chuẩn bị',
-            'Đơn hàng đã được giao',
+            'Đơn hàng đang được vận chuyển',
             'Đơn hàng giao thành công',
         ],
         default: 'Chờ xác nhận đơn hàng',
     },
+    statusHistory: [{
+        status: String,
+        updatedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    appliedVoucher: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Voucher',
+        default: null
+    },
     deliveredAt: { type: Date },
+    rejectedAt: { type: Date, default: null },
 },
     {
         timestamps: true,
